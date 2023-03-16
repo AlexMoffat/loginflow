@@ -1,0 +1,62 @@
+version: "3.9"
+services:
+  # postgres database server
+  db:
+    environment:
+      # Create a database user called postgres and a database called postgres.
+      POSTGRES_PASSWORD: ReverseImpact
+      POSTGRES_USER: postgres
+    image: postgres:15.2
+    # Healthcheck so that other containers can use depends_on with service_healthy. We check for
+    # the keycloak db being available.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      # Externally use 5532
+      - "5532:5432"
+    # Run as postgres user.
+    user: postgres
+    volumes:
+      # Source for init scripts to create users and initialize databases. Contains keycloak.sql
+      # which creates the database for Keycloak.
+      - type: bind
+        source: ./initdb.d/
+        target: /docker-entrypoint-initdb.d/
+      # Volume to store data between restarts. This is kept by docker.
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data  
+  # keycloak for identity and access management
+  keycloak:
+    # Use the development configuration because this is just development
+    command: start-dev
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Type of database.
+      KC_DB: postgres
+      # Password for the KC_DB_USERNAME user. Set in initdb.d/keycloak.sql
+      KC_DB_PASSWORD: HorseHouse
+      # KC_DB_URL was not working so specify individual properties.
+      # Name of the database. 
+      KC_DB_URL_DATABASE: keycloak
+      # Database host. Using docker compose networking so available as service name.
+      KC_DB_URL_HOST: db
+      # Use the internal port
+      KC_DB_URL_PORT: 5432
+      # Name of the db user. Set in initdb.d/keycloak.sql
+      KC_DB_USERNAME: keycloak
+      # Used to login to the keycloak admin console. http://localhost:8090/admin
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: CatParlor
+    image: quay.io/keycloak/keycloak:21.0
+    ports:
+      # Externally access on 8090
+      - "8090:8080"      
+volumes: 
+  # List volumes with `docker volume ls`
+  pgdata:

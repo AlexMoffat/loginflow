@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Greeting</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p th:text="${greeting}">Hello</p>
+<p> 
+<!--/* Use a form to post to /logout so that spring security doesn't present a confirm screen. */-->
+<form name="logout" id="logout" method="post" action="/logout">
+  <!--/* csrf token is needed. */-->
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+  <button>Logout</button>
+</form>
+</p>
+</body>
+</html>

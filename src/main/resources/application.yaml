@@ -1,0 +1,24 @@
+# https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
+server:
+  port: 8100
+
+spring:
+  mvc:
+    # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.web.spring.mvc.log-request-details
+    log-request-details: true
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: login
+            authorization-grant-type: authorization_code
+            scope: openid
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8090/realms/MyAppRealm
+            user-name-attribute: preferred_username
+
+logging:
+  level:
+    root: trace
